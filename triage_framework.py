@@ -3,30 +3,23 @@ triage_framework.py
 -------------------
 Confidence threshold triage framework for SOC alert fatigue reduction.
 
-Routes each IDS prediction to one of three operational tiers based on
-combined model confidence and empirically observed tier accuracy:
+Routes each IDS prediction to one of three operational tiers based on combined model confidence and empirically observed tier accuracy:
 
   Tier 1 (Auto-action)   : confidence >= tier1_threshold AND tier accuracy >= 96%
   Tier 2 (Second Review) : confidence 50-90% AND tier accuracy 40-92%
   Tier 3 (Full Escalation): confidence < tier3_threshold AND tier accuracy < 50%
 
 Threshold justification:
-  - 90% upper threshold: satisfies the selective classification accuracy
-    guarantee (Geifman & El-Yaniv, NeurIPS 2017). Tier 1 accuracy of
+  - 90% upper threshold: satisfies the selective classification accuracy guarantee (Geifman & El-Yaniv, NeurIPS 2017). Tier 1 accuracy of
     98.85-100% was empirically validated across all model-dataset combinations.
-  - 50% lower threshold: optimal abstention criterion (Hendrickx et al.,
-    Machine Learning 2024). On an 8-10 class problem, confidence < 50%
-    means the model assigns less than 4x random-chance probability to its
-    top class. Base rate argument (Sommer & Paxson, IEEE S&P 2010) provides
+  - 50% lower threshold: optimal abstention criterion (Hendrickx et al., Machine Learning 2024). On an 8-10 class problem, confidence < 50%
+    means the model assigns less than 4x random-chance probability to its top class. Base rate argument (Sommer & Paxson, IEEE S&P 2010) provides
     IDS-specific rationale.
 
-IMPORTANT — Threshold calibration:
-  The default thresholds (90% and 50%) are theoretically grounded starting
-  points. Every organisation should calibrate these against their own traffic
-  characteristics, analyst team capacity, and acceptable false positive and
-  false negative rates before production deployment. A high-volume financial
-  SOC and a small healthcare security team have very different operational
-  constraints, and optimal thresholds will differ accordingly.
+IMPORTANT - Threshold calibration:
+  The default thresholds (90% and 50%) are theoretically grounded starting points. Every organisation should calibrate these against their own traffic
+  characteristics, analyst team capacity, and acceptable false positive and false negative rates before production deployment. A high-volume financial
+  SOC and a small healthcare security team have very different operational constraints, and optimal thresholds will differ accordingly.
 
 Workload reduction formula:
   WR = (1 - (0*|T1| + 0.5*|T2| + 1.0*|T3|) / total) * 100%
@@ -64,7 +57,7 @@ DEFAULT_TIER1_THRESHOLD = 0.90
 DEFAULT_TIER3_THRESHOLD = 0.50
 
 
-# ─── Confidence scoring ───────────────────────────────────────────────────────
+# Confidence scoring 
 
 def compute_confidence(proba: np.ndarray) -> np.ndarray:
     """
@@ -75,13 +68,12 @@ def compute_confidence(proba: np.ndarray) -> np.ndarray:
       - CICIoT2023 (8 classes):  baseline = 12.5%
       - UNSW-NB15  (10 classes): baseline = 10.0%
 
-    A confidence below 50% means the model assigns less than
-    4x the random-chance probability to its top predicted class.
+    A confidence below 50% means the model assigns less than 4x the random-chance probability to its top predicted class.
     """
     return np.max(proba, axis=1)
 
 
-# ─── Tier assignment ──────────────────────────────────────────────────────────
+# Tier assignment 
 
 def assign_tiers(confidence: np.ndarray,
                  tier1_threshold: float = DEFAULT_TIER1_THRESHOLD,
@@ -98,15 +90,14 @@ def assign_tiers(confidence: np.ndarray,
     return tiers
 
 
-# ─── Tier accuracy validation ─────────────────────────────────────────────────
+# Tier accuracy validation 
 
 def compute_tier_accuracy(y_true: np.ndarray, y_pred: np.ndarray,
                           tiers: np.ndarray) -> dict:
     """
     Compute prediction accuracy within each confidence tier.
 
-    The combined confidence-and-accuracy criteria require that Tier 1
-    achieves >= 96% accuracy (satisfying the selective classification
+    The combined confidence-and-accuracy criteria require that Tier 1 achieves >= 96% accuracy (satisfying the selective classification
     guarantee) and Tier 3 achieves < 50% (validating manual escalation).
     """
     results = {}
@@ -125,13 +116,13 @@ def compute_tier_accuracy(y_true: np.ndarray, y_pred: np.ndarray,
     return results
 
 
-# ─── Workload reduction ───────────────────────────────────────────────────────
+#  Workload reduction
 
 def compute_workload_reduction(tier_results: dict) -> float:
     """
     Estimate SOC analyst workload reduction vs fully manual baseline.
 
-    Tier 1 = 0.0 reviews  (automated — no analyst involvement)
+    Tier 1 = 0.0 reviews  (automated - no analyst involvement)
     Tier 2 = 0.5 reviews  (second-reviewer check)
     Tier 3 = 1.0 reviews  (full manual investigation)
 
@@ -149,7 +140,7 @@ def compute_workload_reduction(tier_results: dict) -> float:
     return round((1 - weighted / total) * 100, 2)
 
 
-# ─── Per-class tier breakdown ─────────────────────────────────────────────────
+#  Per-class tier breakdown 
 
 def per_class_tier_distribution(y_true_str: np.ndarray,
                                  y_pred_str: np.ndarray,
@@ -158,7 +149,7 @@ def per_class_tier_distribution(y_true_str: np.ndarray,
     """
     Break down tier assignments by true attack class.
 
-    Shows how the triage framework routes each attack category —
+    Shows how the triage framework routes each attack category -
     high-confidence majority classes route to Tier 1 (auto-action),
     rare uncertain classes route to Tier 3 (full escalation).
     """
@@ -201,7 +192,7 @@ def print_tier_table(df: pd.DataFrame, model_name: str):
               f"{row['T3']:>7,} {row['T3 %']:>5.1f}%")
 
 
-# ─── Confidence distribution plot ─────────────────────────────────────────────
+# Confidence distribution plot
 
 def plot_confidence_distribution(confidence: np.ndarray,
                                   tiers: np.ndarray,
@@ -248,7 +239,7 @@ def plot_confidence_distribution(confidence: np.ndarray,
     print(f"  Saved: {path}")
 
 
-# ─── Summary plot ─────────────────────────────────────────────────────────────
+# Summary plot
 
 def plot_tier_summary(all_results: list, dataset: str, output_dir: str):
     """
@@ -280,7 +271,7 @@ def plot_tier_summary(all_results: list, dataset: str, output_dir: str):
     # Workload reduction
     bars = ax2.bar(models, wr, color=["#2ecc71", "#3498db", "#9b59b6"])
     ax2.set_ylabel("Estimated Workload Reduction (%)")
-    ax2.set_title(f"SOC Workload Reduction — {dataset}")
+    ax2.set_title(f"SOC Workload Reduction - {dataset}")
     ax2.set_ylim(0, 110)
     for bar, val in zip(bars, wr):
         ax2.text(bar.get_x() + bar.get_width() / 2,
@@ -294,7 +285,7 @@ def plot_tier_summary(all_results: list, dataset: str, output_dir: str):
     print(f"  Saved: {path}")
 
 
-# ─── Main pipeline ────────────────────────────────────────────────────────────
+# Main pipeline 
 
 def run_triage(dataset: str, balancing: str,
                tier1_threshold: float, tier3_threshold: float,
@@ -312,7 +303,7 @@ def run_triage(dataset: str, balancing: str,
     prefix = "ciciot2023" if dataset == "ciciot2023" else "unsw_nb15"
     tag    = f"{prefix}_{balancing}"
 
-    # ── Load models and test data ──────────────────────────────────────────────
+    # Load models and test data 
     with open(os.path.join(model_dir, f"rf_{tag}.pkl"),  "rb") as f:
         rf = pickle.load(f)
     with open(os.path.join(model_dir, f"xgb_{tag}.pkl"), "rb") as f:
@@ -330,7 +321,7 @@ def run_triage(dataset: str, balancing: str,
     classes = list(le.classes_)
     os.makedirs(output_dir, exist_ok=True)
 
-    # ── Process each model ────────────────────────────────────────────────────
+    # Process each model 
     all_results   = []
     summary_rows  = []
 
@@ -351,7 +342,7 @@ def run_triage(dataset: str, balancing: str,
         tier_res   = compute_tier_accuracy(y_test_enc, preds_enc, tiers)
         wr         = compute_workload_reduction(tier_res)
 
-        # ── Tier summary ──────────────────────────────────────────────────────
+        # Tier summary 
         print(f"\n  Tier Distribution:")
         total = len(tiers)
         for t in [1, 2, 3]:
@@ -364,7 +355,7 @@ def run_triage(dataset: str, balancing: str,
         print(f"\n  Estimated SOC workload reduction: {wr:.2f}%")
         print(f"  (vs fully manual baseline where every alert = 1 full review)")
 
-        # ── Per-class tier distribution ───────────────────────────────────────
+        # Per-class tier distribution
         pc_df = per_class_tier_distribution(
             y_test_str, preds_str, tiers, classes)
         print_tier_table(pc_df, model_name)
@@ -373,7 +364,7 @@ def run_triage(dataset: str, balancing: str,
                    f"_{tag}.csv")
         pc_df.to_csv(os.path.join(output_dir, pc_path))
 
-        # ── Mean confidence: correct vs incorrect predictions ─────────────────
+        # Mean confidence: correct vs incorrect predictions 
         correct_mask   = (preds_enc == y_test_enc)
         mean_conf_all  = confidence.mean()
         mean_conf_corr = confidence[correct_mask].mean()
@@ -386,12 +377,12 @@ def run_triage(dataset: str, balancing: str,
         print(f"    Mean (wrong)     : {mean_conf_wrong*100:.2f}%")
         print(f"    Correct-Wrong gap: {conf_gap*100:.2f} pp")
 
-        # ── Plot confidence distribution ───────────────────────────────────────
+        # Plot confidence distribution 
         plot_confidence_distribution(
             confidence, tiers, model_name, dataset,
             tier1_threshold, tier3_threshold, tier_res, output_dir)
 
-        # ── Store for summary ─────────────────────────────────────────────────
+        # Store for summary 
         all_results.append({
             "model":              model_name,
             "tier_results":       tier_res,
@@ -414,15 +405,15 @@ def run_triage(dataset: str, balancing: str,
             "Tier3 Threshold":    tier3_threshold,
         })
 
-    # ── Summary plot ───────────────────────────────────────────────────────────
+    # Summary plot 
     plot_tier_summary(all_results, dataset, output_dir)
 
-    # ── Save summary CSV ───────────────────────────────────────────────────────
+    # Save summary CSV 
     summary_df   = pd.DataFrame(summary_rows)
     summary_path = os.path.join(output_dir, f"triage_summary_{tag}.csv")
     summary_df.to_csv(summary_path, index=False)
 
-    # ── Final summary printout ─────────────────────────────────────────────────
+    # Final summary printout 
     print(f"\n  {'═'*72}")
     print("  TRIAGE FRAMEWORK SUMMARY")
     print(f"  {'═'*72}")
@@ -440,7 +431,7 @@ def run_triage(dataset: str, balancing: str,
     print("\n=== Triage framework complete ===")
 
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
+# CLI 
 
 def main():
     parser = argparse.ArgumentParser(
