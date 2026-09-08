@@ -8,36 +8,29 @@
 
 ## The Problem
 
-SOC analysts are drowning in alerts. Signature-based IDS tools like Snort and Suricata
-generate thousands of notifications per shift. The majority are false positives. Analysts
-develop shortcuts, trust erodes, and real attacks get missed inside the noise.
+SOC analysts are drowning in alerts. Signature-based IDS tools like Snort and Suricata generate thousands of notifications per shift. The majority are false positives. Analysts develop shortcuts, trust erodes, and real attacks get missed inside the noise.
 
-Published ML research makes this worse by reporting **aggregate accuracy** : a single
-number that looks impressive but conceals how the model performs on individual attack
-types. A 99.6% accurate classifier can simultaneously miss 61% of web-based intrusion
-attempts. That failure is invisible until it is too late.
+Published ML research makes this worse by reporting **aggregate accuracy** : a single number that looks impressive but conceals how the model performs on individual attack types. A 99.6% accurate classifier can simultaneously miss 61% of web-based intrusion attempts. That failure is invisible until it is too late.
 
 This project addresses three specific gaps:
 
-- **Per-class evaluation** — break accuracy down to FPR and FNR for every attack category
-- **Confidence-based routing** — use model uncertainty to route predictions to the right level of analyst scrutiny
-- **Explainability** — SHAP feature-level explanations for every prediction, EU AI Act Article 13 compliant
+- **Per-class evaluation** - break accuracy down to FPR and FNR for every attack category
+- **Confidence-based routing** - use model uncertainty to route predictions to the right level of analyst scrutiny
+- **Explainability** - SHAP feature-level explanations for every prediction, EU AI Act Article 13 compliant
 
 ---
 
 ## What This Project Does
 
-Three ensemble classifiers — Random Forest, XGBoost, and a soft Voting Classifier — are
-trained and evaluated on two public IDS benchmarks under class weighting and SMOTE.
+Three ensemble classifiers: Random Forest, XGBoost, and a soft Voting Classifier - are trained and evaluated on two public IDS benchmarks under class weighting and SMOTE.
 
-A **three-tier confidence triage framework** then routes each prediction based on how
-certain the model is:
+A **three-tier confidence triage framework** then routes each prediction based on how certain the model is:
 
 | Tier | Confidence | Observed Accuracy | SOC Action |
 |---|---|---|---|
-| **Tier 1 — Auto-action** | ≥ 90% | ≥ 96% | Automated response, no analyst review |
-| **Tier 2 — Second Review** | 50–90% | 40–92% | Second analyst verifies before action |
-| **Tier 3 — Escalation** | < 50% | < 50% | Full manual investigation |
+| **Tier 1 - Auto-action** | ≥ 90% | ≥ 96% | Automated response, no analyst review |
+| **Tier 2 - Second Review** | 50–90% | 40–92% | Second analyst verifies before action |
+| **Tier 3 - Escalation** | < 50% | < 50% | Full manual investigation |
 
 > **Important:** The threshold values of 90% and 50% are theoretically grounded
 > starting points, not universal settings. Every organisation should calibrate
@@ -46,8 +39,7 @@ certain the model is:
 > A high-volume financial SOC and a small healthcare security team have very
 > different operational constraints, and the right thresholds will differ accordingly.
 
-SHAP (TreeSHAP) provides feature-level explanations for every prediction — both global
-importance rankings and instance-level waterfall plots for misclassified predictions.
+SHAP (TreeSHAP) provides feature-level explanations for every prediction for both global importance rankings and instance-level waterfall plots for misclassified predictions.
 
 ---
 
@@ -82,16 +74,13 @@ Both datasets are publicly available. Download links above.
 
 ### Why aggregate accuracy is not enough
 
-Random Forest on CICIoT2023: **99.61% accuracy** — looks perfect.
+Random Forest on CICIoT2023: **99.61% accuracy** - looks perfect.
 The same model misses **61.09% of Web attacks** and **44.48% of BruteForce attacks**.
 Both figures describe the same classifier on the same test data. Only per-class evaluation reveals the gap.
 
 ### SMOTE vs Class Weighting (UNSW-NB15)
 
-Class weighting outperforms SMOTE for Random Forest by **+5.85 percentage points** in accuracy.
-UNSW-NB15's overlapping class boundaries cause SMOTE to generate synthetic instances in
-adjacent class regions, making classification harder. Class weighting adjusts the loss function
-directly without touching the data — and it scales to any dataset size.
+Class weighting outperforms SMOTE for Random Forest by **+5.85 percentage points** in accuracy. UNSW-NB15's overlapping class boundaries cause SMOTE to generate synthetic instances in adjacent class regions, making classification harder. Class weighting adjusts the loss function directly without touching the data — and it scales to any dataset size.
 
 ---
 
@@ -107,10 +96,7 @@ directly without touching the data — and it scales to any dataset size.
 | 4 | smean | Protocol Type |
 | 5 | tcprtt | rst_count |
 
-A model trained on enterprise traffic and deployed in an IoT environment bases its
-predictions on features that carry **no signal** in the new environment. SHAP analysis
-in the deployment environment — not just the training environment — is the mechanism
-that catches this before production.
+A model trained on enterprise traffic and deployed in an IoT environment bases its predictions on features that carry **no signal** in the new environment. SHAP analysis in the deployment environment - not just the training environment - is the mechanism that catches this before production.
 
 ---
 
