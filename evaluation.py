@@ -17,8 +17,7 @@ Usage:
   python evaluation.py --dataset unsw_nb15  --balancing smote
 
 Why per-class FPR and FNR matter:
-  Aggregate accuracy is dominated by majority classes. A 99.6% accurate
-  classifier on CICIoT2023 simultaneously misses 61% of Web attacks.
+  Aggregate accuracy is dominated by majority classes. A 99.6% accurate classifier on CICIoT2023 simultaneously misses 61% of Web attacks.
   Per-class FPR and FNR are the metrics SOC deployment decisions require.
 
 Random seed: 42
@@ -44,7 +43,7 @@ from sklearn.metrics import (
 RANDOM_SEED = 42
 
 
-# ─── Load helpers ─────────────────────────────────────────────────────────────
+# Load helpers
 
 def load_artifacts(dataset: str, balancing: str,
                    model_dir: str, data_dir: str):
@@ -72,7 +71,7 @@ def load_artifacts(dataset: str, balancing: str,
     return rf, xgb, le, vote_probs, y_test_enc, y_test_str, X_test
 
 
-# ─── Per-class FPR / FNR ──────────────────────────────────────────────────────
+# Per-class FPR / FNR
 
 def per_class_fpr_fnr(y_true: np.ndarray, y_pred: np.ndarray,
                       classes: list) -> pd.DataFrame:
@@ -137,7 +136,7 @@ def print_per_class_table(df: pd.DataFrame, model_name: str):
     print(f"  {'Macro F1':<18} {macro_f1:>7.2f}%")
 
 
-# ─── Confusion matrix plot ────────────────────────────────────────────────────
+# Confusion matrix plot
 
 def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
                           classes: list, model_name: str,
@@ -164,7 +163,7 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
     print(f"  Saved confusion matrix: {path}")
 
 
-# ─── Binary classification ────────────────────────────────────────────────────
+# Binary classification
 
 def binary_results(y_true_str: np.ndarray, y_pred_str: np.ndarray,
                    benign_label: str, model_name: str) -> dict:
@@ -192,7 +191,7 @@ def binary_results(y_true_str: np.ndarray, y_pred_str: np.ndarray,
     }
 
 
-# ─── Main evaluation pipeline ─────────────────────────────────────────────────
+# Main evaluation pipeline
 
 def evaluate(dataset: str, balancing: str,
              model_dir: str, data_dir: str, output_dir: str):
@@ -201,14 +200,14 @@ def evaluate(dataset: str, balancing: str,
     print(f"  Dataset   : {dataset}")
     print(f"  Balancing : {balancing}\n")
 
-    # ── Load ──────────────────────────────────────────────────────────────────
+    # Load
     rf, xgb, le, vote_probs, y_test_enc, y_test_str, X_test = \
         load_artifacts(dataset, balancing, model_dir, data_dir)
 
     classes     = list(le.classes_)
     benign_lbl  = "Benign" if dataset == "ciciot2023" else "Normal"
 
-    # ── Predictions ───────────────────────────────────────────────────────────
+    # Predictions 
     rf_preds_enc   = rf.predict(X_test)
     xgb_preds_enc  = xgb.predict(X_test)
     vote_preds_enc = np.argmax(vote_probs, axis=1)
@@ -217,13 +216,13 @@ def evaluate(dataset: str, balancing: str,
     xgb_preds_str  = le.inverse_transform(xgb_preds_enc)
     vote_preds_str = le.inverse_transform(vote_preds_enc)
 
-    # ── Aggregate accuracy ────────────────────────────────────────────────────
+    # Aggregate accuracy 
     print("  Overall Accuracy")
     print(f"    RF    : {accuracy_score(y_test_enc, rf_preds_enc)*100:.2f}%")
     print(f"    XGB   : {accuracy_score(y_test_enc, xgb_preds_enc)*100:.2f}%")
     print(f"    Vote  : {accuracy_score(y_test_enc, vote_preds_enc)*100:.2f}%")
 
-    # ── Per-class FPR / FNR ───────────────────────────────────────────────────
+    # Per-class FPR / FNR
     os.makedirs(output_dir, exist_ok=True)
     prefix = "ciciot2023" if dataset == "ciciot2023" else "unsw_nb15"
     tag    = f"{prefix}_{balancing}"
@@ -247,7 +246,7 @@ def evaluate(dataset: str, balancing: str,
         plot_confusion_matrix(y_test_enc, preds_enc, classes,
                               model_name, dataset, output_dir)
 
-    # ── Binary results ────────────────────────────────────────────────────────
+    # Binary results
     print(f"\n  {'─'*70}")
     print("  Binary Classification (attack vs benign/normal)")
     print(f"  {'─'*70}")
@@ -266,7 +265,7 @@ def evaluate(dataset: str, balancing: str,
     binary_df.to_csv(os.path.join(output_dir, f"binary_results_{tag}.csv"))
     print(f"\n  Saved binary results: binary_results_{tag}.csv")
 
-    # ── Combined summary ──────────────────────────────────────────────────────
+    # Combined summary 
     summary_rows = []
     for model_name, table in all_tables.items():
         summary_rows.append({
@@ -300,7 +299,7 @@ def evaluate(dataset: str, balancing: str,
     print("\n=== Evaluation complete ===")
 
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
+# CLI 
 
 def main():
     parser = argparse.ArgumentParser(
