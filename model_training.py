@@ -16,8 +16,7 @@ Usage:
   python model_training.py --dataset unsw_nb15  --balancing class_weight
   python model_training.py --dataset unsw_nb15  --balancing smote
 
-  For CICIoT2023 cross-validation uses a stratified 20% subsample due to
-  memory constraints. Final models are trained on the full training set.
+  For CICIoT2023 cross-validation uses a stratified 20% subsample due to memory constraints. Final models are trained on the full training set.
 
 Random seed: 42 (fixed throughout)
 """
@@ -45,7 +44,7 @@ CICIOT_CV_SUBSAMPLE = 0.20   # 20% subsample for CICIoT2023 cross-validation
 SMOTE_K_NEIGHBOURS  = 5
 
 
-# ─── Model builders ───────────────────────────────────────────────────────────
+# Model builders 
 
 def build_rf(class_weight="balanced"):
     """Random Forest with class weighting."""
@@ -76,7 +75,7 @@ def build_xgb(num_classes: int):
     )
 
 
-# ─── Cross-validation ─────────────────────────────────────────────────────────
+# Cross-validation
 
 def run_cross_validation(X: np.ndarray, y: np.ndarray,
                          model, model_name: str,
@@ -133,7 +132,7 @@ def run_cross_validation(X: np.ndarray, y: np.ndarray,
     return np.mean(cv_acc), np.mean(cv_f1)
 
 
-# ─── Training pipeline ────────────────────────────────────────────────────────
+#Training pipeline 
 
 def train_models(dataset: str, balancing: str,
                  data_dir: str, output_dir: str):
@@ -142,7 +141,7 @@ def train_models(dataset: str, balancing: str,
     print(f"  Dataset   : {dataset}")
     print(f"  Balancing : {balancing}\n")
 
-    # ── Load preprocessed data ────────────────────────────────────────────────
+    # Load preprocessed data 
     prefix = "ciciot2023" if dataset == "ciciot2023" else "unsw_nb15"
     X_train = pd.read_csv(
         os.path.join(data_dir, f"{prefix}_train_X.csv")).values
@@ -167,7 +166,7 @@ def train_models(dataset: str, balancing: str,
 
     is_large = (dataset == "ciciot2023")
 
-    # ── Apply SMOTE if requested ───────────────────────────────────────────────
+    # Apply SMOTE if requested 
     if balancing == "smote":
         if dataset == "ciciot2023":
             print("  WARNING: SMOTE is not supported for CICIoT2023 "
@@ -185,13 +184,13 @@ def train_models(dataset: str, balancing: str,
             # No class weighting needed after SMOTE
             sample_weight_train = None
     
-    # ── Compute sample weights for class weighting ────────────────────────────
+    # Compute sample weights for class weighting
     if balancing == "class_weight":
         sample_weight_train = compute_sample_weight("balanced", y_train_enc)
     else:
         sample_weight_train = None
 
-    # ── RF ────────────────────────────────────────────────────────────────────
+    #  RF
     print("─" * 50)
     print("  Random Forest")
     print("─" * 50)
@@ -214,7 +213,7 @@ def train_models(dataset: str, balancing: str,
     print(f"  Test Accuracy : {rf_acc*100:.2f}%")
     print(f"  Test Macro F1 : {rf_f1*100:.2f}%")
 
-    # ── XGBoost ───────────────────────────────────────────────────────────────
+    # XGBoost
     print("\n" + "─" * 50)
     print("  XGBoost")
     print("─" * 50)
@@ -239,10 +238,9 @@ def train_models(dataset: str, balancing: str,
     print(f"  Test Accuracy : {xgb_acc*100:.2f}%")
     print(f"  Test Macro F1 : {xgb_f1*100:.2f}%")
 
-    # ── Voting Classifier ─────────────────────────────────────────────────────
+    # Voting Classifier
     # Implemented by averaging RF and XGBoost probability vectors directly,
-    # rather than using sklearn's VotingClassifier wrapper, to avoid the
-    # double training cost on large datasets.
+    # rather than using sklearn's VotingClassifier wrapper, to avoid the double training cost on large datasets.
     print("\n" + "─" * 50)
     print("  Voting Classifier (soft vote: RF + XGBoost average)")
     print("─" * 50)
@@ -257,7 +255,7 @@ def train_models(dataset: str, balancing: str,
     print(f"  Test Accuracy : {vote_acc*100:.2f}%")
     print(f"  Test Macro F1 : {vote_f1*100:.2f}%")
 
-    # ── Summary ───────────────────────────────────────────────────────────────
+    # Summary
     print("\n" + "=" * 50)
     print("  RESULTS SUMMARY")
     print("=" * 50)
@@ -267,7 +265,7 @@ def train_models(dataset: str, balancing: str,
     print(f"  {'XGBoost':<22} {xgb_acc*100:>9.2f}%  {xgb_f1*100:>9.2f}%")
     print(f"  {'Voting Classifier':<22} {vote_acc*100:>9.2f}%  {vote_f1*100:>9.2f}%")
 
-    # ── Save models ───────────────────────────────────────────────────────────
+    # Save models
     os.makedirs(output_dir, exist_ok=True)
     tag = f"{prefix}_{balancing}"
 
@@ -295,8 +293,7 @@ def _save_model(obj, output_dir: str, filename: str):
     print(f"  Saved: {path}")
 
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
-
+#CLI 
 def main():
     parser = argparse.ArgumentParser(
         description="Train RF, XGBoost, and Voting Classifier on IDS benchmark data."
