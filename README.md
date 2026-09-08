@@ -29,7 +29,7 @@ A **three-tier confidence triage framework** then routes each prediction based o
 | Tier | Confidence | Observed Accuracy | SOC Action |
 |---|---|---|---|
 | **Tier 1 - Auto-action** | ≥ 90% | ≥ 96% | Automated response, no analyst review |
-| **Tier 2 - Second Review** | 50–90% | 40–92% | Second analyst verifies before action |
+| **Tier 2 - Second Review** | 50-90% | 40-92% | Second analyst verifies before action |
 | **Tier 3 - Escalation** | < 50% | < 50% | Full manual investigation |
 
 > **Important:** The threshold values of 90% and 50% are theoretically grounded
@@ -141,32 +141,32 @@ cd ensemble-ml-ids-alert-fatigue
 pip install -r requirements.txt
 ```
 
-**Step 1 — Preprocess the data**
+**Step 1 - Preprocess the data**
 ```bash
 python src/preprocessing.py --dataset ciciot2023 --input data/raw/ --output data/processed/
 python src/preprocessing.py --dataset unsw_nb15 --input data/raw/ --output data/processed/
 ```
 
-**Step 2 — Train the models**
+**Step 2 - Train the models**
 ```bash
 python src/model_training.py --dataset ciciot2023 --balancing class_weight
 python src/model_training.py --dataset unsw_nb15 --balancing class_weight
 python src/model_training.py --dataset unsw_nb15 --balancing smote
 ```
 
-**Step 3 — Evaluate per-class FPR and FNR**
+**Step 3 - Evaluate per-class FPR and FNR**
 ```bash
 python src/evaluation.py --dataset ciciot2023
 python src/evaluation.py --dataset unsw_nb15
 ```
 
-**Step 4 — Run the triage framework**
+**Step 4 - Run the triage framework**
 ```bash
 python src/triage_framework.py --dataset ciciot2023 --tier1-threshold 0.90 --tier3-threshold 0.50
 python src/triage_framework.py --dataset unsw_nb15 --tier1-threshold 0.90 --tier3-threshold 0.50
 ```
 
-**Step 5 — SHAP analysis**
+**Step 5 - SHAP analysis**
 ```bash
 python src/shap_analysis.py --dataset ciciot2023 --sample-size 1000
 python src/shap_analysis.py --dataset unsw_nb15 --sample-size 1000
@@ -205,18 +205,18 @@ seaborn>=0.12
 
 ## Related Projects
 
-- [snort-ids-evasion-detection](https://github.com/pinkfirewall-exe/snort-ids-evasion-detection) — Snort IDS evasion testing and custom rule development
-- [tpot-honeypot-analysis](https://github.com/pinkfirewall-exe/tpot-honeypot-analysis) — T-Pot honeypot deployment and attack analysis
-- [cybersecurity-portfolio](https://github.com/pinkfirewall-exe/cybersecurity-portfolio) — Security practice writeups and lab projects
+- [snort-ids-evasion-detection](https://github.com/pinkfirewall-exe/snort-ids-evasion-detection) - Snort IDS evasion testing and custom rule development
+- [tpot-honeypot-analysis](https://github.com/pinkfirewall-exe/tpot-honeypot-analysis) - T-Pot honeypot deployment and attack analysis
+- [cybersecurity-portfolio](https://github.com/pinkfirewall-exe/cybersecurity-portfolio) - Security practice writeups and lab projects
 
 ---
 
 ## References
 
-- Geifman & El-Yaniv (2017) — Selective classification for deep neural networks. *NeurIPS*
-- Hendrickx et al. (2024) — Machine learning with a reject option. *Machine Learning*
-- Sommer & Paxson (2010) — Outside the closed world: On using ML for network IDS. *IEEE S&P*
-- Neto et al. (2023) — CICIoT2023: A real-time dataset for IoT cybersecurity. *Sensors*
-- Moustafa & Slay (2015) — UNSW-NB15: A comprehensive dataset for network intrusion detection. *MilCIS*
-- Chen & Guestrin (2016) — XGBoost: A scalable tree boosting system. *KDD*
-- Lundberg & Lee (2017) — A unified approach to interpreting model predictions. *NeurIPS*
+- Geifman & El-Yaniv (2017) - Selective classification for deep neural networks. *NeurIPS*
+- Hendrickx et al. (2024) - Machine learning with a reject option. *Machine Learning*
+- Sommer & Paxson (2010) - Outside the closed world: On using ML for network IDS. *IEEE S&P*
+- Neto et al. (2023) - CICIoT2023: A real-time dataset for IoT cybersecurity. *Sensors*
+- Moustafa & Slay (2015) - UNSW-NB15: A comprehensive dataset for network intrusion detection. *MilCIS*
+- Chen & Guestrin (2016) - XGBoost: A scalable tree boosting system. *KDD*
+- Lundberg & Lee (2017) - A unified approach to interpreting model predictions. *NeurIPS*
