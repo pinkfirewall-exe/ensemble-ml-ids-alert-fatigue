@@ -57,7 +57,7 @@ PROXY_N_ESTIMATORS = 10
 PROXY_MAX_DEPTH    = 8
 
 
-# ─── Load helpers ─────────────────────────────────────────────────────────────
+# Load helpers 
 
 def load_artifacts(dataset: str, balancing: str,
                    model_dir: str, data_dir: str):
@@ -95,7 +95,7 @@ def stratified_sample(X: pd.DataFrame, y: np.ndarray,
     return X_sample, y_sample
 
 
-# ─── SHAP explainers ──────────────────────────────────────────────────────────
+# SHAP explainers 
 
 def get_rf_explainer(rf, X_sample: pd.DataFrame, is_large: bool):
     """
@@ -140,7 +140,7 @@ def compute_shap_values(explainer, X_sample: pd.DataFrame) -> np.ndarray:
     return shap_arr
 
 
-# ─── Global feature importance ────────────────────────────────────────────────
+# Global feature importance 
 
 def global_importance(shap_arr: np.ndarray,
                       feature_names: list) -> pd.Series:
@@ -187,7 +187,7 @@ def print_top_features(importance: pd.Series, model_name: str, top_n: int):
         print(f"  {rank:<5} {feat:<28} {val:>12.6f}")
 
 
-# ─── Beeswarm plot ────────────────────────────────────────────────────────────
+# Beeswarm plot 
 
 def plot_beeswarm(shap_arr: np.ndarray,
                   X_sample: pd.DataFrame,
@@ -236,7 +236,7 @@ def plot_beeswarm(shap_arr: np.ndarray,
     print(f"  Saved beeswarm ({class_name}): {path}")
 
 
-# ─── Waterfall plot for misclassified predictions ─────────────────────────────
+# Waterfall plot for misclassified predictions
 
 def plot_waterfall_misclassified(shap_arr: np.ndarray,
                                   X_sample: pd.DataFrame,
@@ -317,7 +317,7 @@ def plot_waterfall_misclassified(shap_arr: np.ndarray,
         plotted += 1
 
 
-# ─── RF vs XGBoost comparison ─────────────────────────────────────────────────
+#  RF vs XGBoost comparison 
 
 def plot_rf_vs_xgb_comparison(rf_importance: pd.Series,
                                xgb_importance: pd.Series,
@@ -365,7 +365,7 @@ def plot_rf_vs_xgb_comparison(rf_importance: pd.Series,
     return len(overlap)
 
 
-# ─── Cross-dataset overlap ────────────────────────────────────────────────────
+# Cross-dataset overlap 
 
 def cross_dataset_overlap(ciciot_importance: pd.Series,
                            unsw_importance: pd.Series,
@@ -399,10 +399,10 @@ def cross_dataset_overlap(ciciot_importance: pd.Series,
         print(f"  SHAP analysis is required in the deployment environment,")
         print(f"  not just the training environment.")
 
-    return len(overlap)
+     return len(overlap)
 
 
-# ─── Main pipeline ────────────────────────────────────────────────────────────
+# Main pipeline 
 
 def run_shap(dataset: str, balancing: str,
              sample_size: int,
@@ -421,14 +421,14 @@ def run_shap(dataset: str, balancing: str,
     is_large   = (dataset == "ciciot2023")
     os.makedirs(output_dir, exist_ok=True)
 
-    # ── Stratified sample ─────────────────────────────────────────────────────
+    # Stratified sample
     X_sample, y_sample = stratified_sample(X_test_df, y_test_enc, sample_size)
     X_sample = X_sample.reset_index(drop=True)
     print(f"  Sample: {len(X_sample)} instances, "
           f"{X_sample.shape[1]} features, {len(classes)} classes")
 
-    # ── SHAP for XGBoost ──────────────────────────────────────────────────────
-    print("\n  ── XGBoost SHAP ──")
+    # SHAP for XGBoost 
+    print("\n  ─ XGBoost SHAP ─")
     xgb_explainer = shap.TreeExplainer(xgb)
     xgb_shap      = compute_shap_values(xgb_explainer, X_sample)
 
@@ -436,8 +436,8 @@ def run_shap(dataset: str, balancing: str,
     print_top_features(xgb_imp, "XGBoost", TOP_N)
     plot_global_importance(xgb_imp, "XGBoost", dataset, TOP_N, output_dir)
 
-    # ── SHAP for Random Forest ────────────────────────────────────────────────
-    print("\n  ── Random Forest SHAP ──")
+    # SHAP for Random Forest 
+    print("\n  ─ Random Forest SHAP ─")
     rf_explainer = shap.TreeExplainer(rf)
     rf_shap      = compute_shap_values(rf_explainer, X_sample)
 
@@ -445,13 +445,13 @@ def run_shap(dataset: str, balancing: str,
     print_top_features(rf_imp, "Random Forest", TOP_N)
     plot_global_importance(rf_imp, "Random Forest", dataset, TOP_N, output_dir)
 
-    # ── RF vs XGBoost comparison ───────────────────────────────────────────────
-    print("\n  ── RF vs XGBoost Comparison ──")
+    # RF vs XGBoost comparison 
+    print("\n  ─ RF vs XGBoost Comparison ─")
     n_shared = plot_rf_vs_xgb_comparison(
         rf_imp, xgb_imp, dataset, TOP_N, output_dir)
 
-    # ── Beeswarm plots ────────────────────────────────────────────────────────
-    print("\n  ── Beeswarm Plots ──")
+    # Beeswarm plots 
+    print("\n  ─ Beeswarm Plots ─")
     if beeswarm_classes is None:
         # Default: most common and rarest class
         beeswarm_classes = [classes[0], classes[-1]]
@@ -468,7 +468,7 @@ def run_shap(dataset: str, balancing: str,
         plot_beeswarm(rf_shap, X_sample, cls_idx, cls_name,
                       "Random Forest", dataset, TOP_N, output_dir)
 
-    # ── Waterfall plots for misclassifications ────────────────────────────────
+    # Waterfall plots for misclassifications 
     print("\n  ── Waterfall Plots (Misclassifications) ──")
     xgb_preds_sample = xgb.predict(X_sample)
     rf_preds_sample  = rf.predict(X_sample)
@@ -481,7 +481,7 @@ def run_shap(dataset: str, balancing: str,
         rf_shap, X_sample, y_sample, rf_preds_sample,
         le, "Random Forest", dataset, output_dir)
 
-    # ── Save importance CSV ───────────────────────────────────────────────────
+    # Save importance CSV
     prefix = "ciciot2023" if dataset == "ciciot2023" else "unsw_nb15"
     tag    = f"{prefix}_{balancing}"
 
@@ -504,7 +504,7 @@ def run_shap(dataset: str, balancing: str,
     return xgb_imp, rf_imp
 
 
-# ─── Cross-dataset comparison (both datasets) ─────────────────────────────────
+# Cross-dataset comparison (both datasets)
 
 def compare_datasets(balancing: str,
                      model_dir: str, data_dir: str, output_dir: str,
@@ -529,7 +529,7 @@ def compare_datasets(balancing: str,
     cross_dataset_overlap(ciciot_xgb_imp, unsw_xgb_imp, TOP_N)
 
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
+# CLI
 
 def main():
     parser = argparse.ArgumentParser(
@@ -600,5 +600,5 @@ def main():
         parser.error("Provide --dataset or --compare-datasets.")
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
