@@ -1,7 +1,7 @@
 # Ensemble ML Intrusion Detection with Confidence-Based SOC Triage
 
 > Reducing alert fatigue in Security Operations Centres using ensemble machine learning,
-> per-class evaluation, and a confidence threshold triage framework — evaluated on
+> per-class evaluation, and a confidence threshold triage framework which is evaluated on
 > CICIoT2023 (IoT) and UNSW-NB15 (enterprise) benchmark datasets.
 
 ---
@@ -12,7 +12,7 @@ SOC analysts are drowning in alerts. Signature-based IDS tools like Snort and Su
 generate thousands of notifications per shift. The majority are false positives. Analysts
 develop shortcuts, trust erodes, and real attacks get missed inside the noise.
 
-Published ML research makes this worse by reporting **aggregate accuracy** — a single
+Published ML research makes this worse by reporting **aggregate accuracy** : a single
 number that looks impressive but conceals how the model performs on individual attack
 types. A 99.6% accurate classifier can simultaneously miss 61% of web-based intrusion
 attempts. That failure is invisible until it is too late.
