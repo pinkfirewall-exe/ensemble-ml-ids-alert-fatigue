@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
 
 RANDOM_SEED = 42
 
-# ─── CICIoT2023 label mapping ─────────────────────────────────────────────────
+# CICIoT2023 label mapping
 # Maps 34 raw attack type labels to 8 operational categories.
 CICIOT_LABEL_MAP = {
     # DDoS
@@ -96,7 +96,7 @@ def load_csv(path: str, dataset: str) -> pd.DataFrame:
     return df
 
 
-# ─── CICIoT2023 preprocessing ─────────────────────────────────────────────────
+# CICIoT2023 preprocessing
 
 def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     """Full preprocessing pipeline for CICIoT2023."""
@@ -106,14 +106,14 @@ def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     train = load_csv(train_path, "ciciot2023")
     test  = load_csv(test_path,  "ciciot2023")
 
-    # ── 1. Remove constant features ──────────────────────────────────────────
+    # 1. Remove constant features
     cols_to_drop = [c for c in CICIOT_CONSTANT_FEATURES if c in train.columns]
     if cols_to_drop:
         train.drop(columns=cols_to_drop, inplace=True)
         test.drop(columns=cols_to_drop, inplace=True)
         print(f"  Dropped constant features: {cols_to_drop}")
 
-    # ── 2. Deduplicate ────────────────────────────────────────────────────────
+    # 2. Deduplicate 
     before = len(train)
     train.drop_duplicates(inplace=True)
     print(f"  Train deduplication: {before:,} -> {len(train):,} "
@@ -125,7 +125,7 @@ def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     print(f"  Test  deduplication: {before:,} -> {len(test):,} "
           f"(-{before - len(test):,} rows)")
 
-    # ── 3. Map labels ─────────────────────────────────────────────────────────
+    # 3. Map labels
     label_col = _detect_label_column(train)
     print(f"  Label column: '{label_col}'")
 
@@ -140,13 +140,13 @@ def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     print(f"  Class distribution (train):")
     _print_class_distribution(train, label_col)
 
-    # ── 4. Separate features and labels ───────────────────────────────────────
+    # 4. Separate features and labels
     X_train = train.drop(columns=[label_col])
     y_train = train[label_col]
     X_test  = test.drop(columns=[label_col])
     y_test  = test[label_col]
 
-    # ── 5. Min-Max scaling (fit on train only) ────────────────────────────────
+    # 5. Min-Max scaling (fit on train only)
     scaler = MinMaxScaler()
     X_train_scaled = pd.DataFrame(
         scaler.fit_transform(X_train),
@@ -158,7 +158,7 @@ def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     )
     print(f"  Min-Max scaling applied. Feature range: [0, 1]")
 
-    # ── 6. Save outputs ───────────────────────────────────────────────────────
+    # 6. Save outputs
     os.makedirs(output_dir, exist_ok=True)
     _save(X_train_scaled, y_train, output_dir, "ciciot2023_train")
     _save(X_test_scaled,  y_test,  output_dir, "ciciot2023_test")
@@ -169,7 +169,7 @@ def preprocess_ciciot(train_path: str, test_path: str, output_dir: str):
     print("\n=== CICIoT2023 preprocessing complete ===")
 
 
-# ─── UNSW-NB15 preprocessing ──────────────────────────────────────────────────
+# UNSW-NB15 preprocessing
 
 def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     """Full preprocessing pipeline for UNSW-NB15."""
@@ -179,7 +179,7 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     train = load_csv(train_path, "unsw_nb15")
     test  = load_csv(test_path,  "unsw_nb15")
 
-    # ── 1. Deduplicate ────────────────────────────────────────────────────────
+    #1. Deduplicate
     before = len(train)
     train.drop_duplicates(inplace=True)
     print(f"  Train deduplication: {before:,} -> {len(train):,} "
@@ -190,14 +190,14 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     test.drop_duplicates(inplace=True)
     print(f"  Test  deduplication: {before:,} -> {len(test):,}")
 
-    # ── 2. Detect label column ────────────────────────────────────────────────
+    # 2. Detect label column
     label_col = _detect_label_column(train)
     print(f"  Label column: '{label_col}'")
 
     print(f"  Class distribution (train):")
     _print_class_distribution(train, label_col)
 
-    # ── 3. Group rare protocols ───────────────────────────────────────────────
+    # 3. Group rare protocols
     # Protocols appearing < UNSW_PROTO_MIN_COUNT times in training are grouped
     # into 'Other'. Grouping derived from training only, applied to test.
     if "proto" in train.columns:
@@ -212,7 +212,7 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
         print(f"  Grouped {len(rare_protos)} rare protocols into 'Other' "
               f"(threshold: {UNSW_PROTO_MIN_COUNT} occurrences).")
 
-    # ── 4. One-hot encode categorical features (fit on train only) ────────────
+    # 4. One-hot encode categorical features (fit on train only)
     cat_cols = [c for c in UNSW_CATEGORICAL_FEATURES if c in train.columns]
     print(f"  One-hot encoding: {cat_cols}")
 
@@ -226,13 +226,13 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     print(f"  After encoding: {train_encoded.shape[1]} columns "
           f"(train), {test_encoded.shape[1]} columns (test — aligned to train).")
 
-    # ── 5. Separate features and labels ───────────────────────────────────────
+    # 5. Separate features and labels
     X_train = train_encoded.drop(columns=[label_col])
     y_train = train_encoded[label_col]
     X_test  = test_encoded.drop(columns=[label_col])
     y_test  = test_encoded[label_col]
 
-    # ── 6. Min-Max scaling (fit on train only) ────────────────────────────────
+    # 6. Min-Max scaling (fit on train only)
     scaler = MinMaxScaler()
     X_train_scaled = pd.DataFrame(
         scaler.fit_transform(X_train),
@@ -244,7 +244,7 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     )
     print(f"  Min-Max scaling applied. Feature range: [0, 1]")
 
-    # ── 7. Save outputs ───────────────────────────────────────────────────────
+    # 7. Save outputs
     os.makedirs(output_dir, exist_ok=True)
     _save(X_train_scaled, y_train, output_dir, "unsw_nb15_train")
     _save(X_test_scaled,  y_test,  output_dir, "unsw_nb15_test")
@@ -255,7 +255,7 @@ def preprocess_unsw(train_path: str, test_path: str, output_dir: str):
     print("\n=== UNSW-NB15 preprocessing complete ===")
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+# Helpers 
 
 def _detect_label_column(df: pd.DataFrame) -> str:
     """Detect the label column by checking common names."""
@@ -288,7 +288,7 @@ def _save(X: pd.DataFrame, y: pd.Series, output_dir: str, prefix: str):
     print(f"  Saved: {y_path}")
 
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
+# CLI 
 
 def main():
     parser = argparse.ArgumentParser(
