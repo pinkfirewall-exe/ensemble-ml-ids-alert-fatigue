@@ -127,8 +127,8 @@ ensemble-ml-ids-alert-fatigue/
 │   ├── fig_unsw_shap_beeswarm_dos.png
 │   ├── fig_ciciot_shap_waterfall.png
 │   └── fig_unsw_shap_waterfall.png
-└── report/
-    └── thesis.pdf                ← full write-up (38 pages, IEEE format)
+
+
 ```
 
 ---
@@ -209,14 +209,4 @@ seaborn>=0.12
 - [tpot-honeypot-analysis](https://github.com/pinkfirewall-exe/tpot-honeypot-analysis) - T-Pot honeypot deployment and attack analysis
 - [cybersecurity-portfolio](https://github.com/pinkfirewall-exe/cybersecurity-portfolio) - Security practice writeups and lab projects
 
----
 
-## References
-
-- Geifman & El-Yaniv (2017) - Selective classification for deep neural networks. *NeurIPS*
-- Hendrickx et al. (2024) - Machine learning with a reject option. *Machine Learning*
-- Sommer & Paxson (2010) - Outside the closed world: On using ML for network IDS. *IEEE S&P*
-- Neto et al. (2023) - CICIoT2023: A real-time dataset for IoT cybersecurity. *Sensors*
-- Moustafa & Slay (2015) - UNSW-NB15: A comprehensive dataset for network intrusion detection. *MilCIS*
-- Chen & Guestrin (2016) - XGBoost: A scalable tree boosting system. *KDD*
-- Lundberg & Lee (2017) - A unified approach to interpreting model predictions. *NeurIPS*
